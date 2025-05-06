@@ -4,4 +4,25 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "black>=25.1.0",
+    "ipython==9.2.0",
+    "jupyter>=1.1.1",
+    "jupyter-black>=0.4.0",
+    "jupyterlab-lsp==5.1.0",
+    "matplotlib>=3.10.1",
+    "memory-profiler>=0.61.0",
+    "mypy>=1.15.0",
+    "mypy-extensions>=1.1.0",
+    "numpy>=2.2.5",
+    "pip>=25.1.1",
+    "pydantic>=2.11.4",
+    "pylsp-mypy>=0.7.0",
+    "python-lsp-server[all]>=1.12.2",
+    "requests>=2.32.3",
+    "requests-cache>=1.2.1",
+    "rich[jupyter]>=14.0.0",
+    "scipy>=1.15.2",
+    "spacy>=3.8.5",
+    "types-requests>=2.32.0.20250328",
+]
