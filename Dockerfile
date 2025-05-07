@@ -23,6 +23,8 @@ ADD . /app
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev
 
+RUN python -m spacy download en_core_web_sm
+
 #TODO don't I have to create my own pykernel?
 
 # MAYBE   VOLUME [“/notebooks”]
@@ -40,6 +42,8 @@ EXPOSE 8888
 # CMD ["jupyter", "lab", "--ip", "0.0.0.0", "--allow-root", "--no-browser"]
 # ENTRYPOINT ["python3", "-m"]
 CMD ["jupyter", "notebook", "--port=8888", "--no-browser", "--ip=0.0.0.0", "--allow-root"]
+# TODO add this above --PasswordIdentityProvider.hashed_password=''
+
 
 # Run the FastAPI application by default
 # Uses `fastapi dev` to enable hot-reloading when the `watch` sync occurs
