@@ -23,7 +23,7 @@ ADD . /app
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev
 
-RUN python -m spacy download en_core_web_sm
+RUN uv run -- spacy download en_core_web_sm
 
 #TODO don't I have to create my own pykernel?
 
