@@ -1,5 +1,4 @@
 # Finding "Tom Swifties": Part of Speech Puns in the Tom Swift Sci-Fi Novellas of the 1910s
-Github: https://github.com/mgatto/TomSwifter
 
 My proposal is to enhance the results of this paper:
 
