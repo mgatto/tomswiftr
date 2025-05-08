@@ -32,22 +32,13 @@ RUN uv run -- spacy download en_core_web_sm
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
 
+# Patch SpaCy to display graph images in IPython 9.x (8.x works, but I'm not going backwards)
+RUN sed -i 's/IPython.core.display/IPython.display/g' /app/.venv/lib/python3.11/site-packages/spacy/displacy/__init__.py
+
 # Reset the entrypoint, don't invoke `uv`
 ENTRYPOINT []
 
 EXPOSE 8888
 
-# TODO uv run --with jupyter jupyter notebook
-
-# CMD ["jupyter", "lab", "--ip", "0.0.0.0", "--allow-root", "--no-browser"]
-# ENTRYPOINT ["python3", "-m"]
 CMD ["jupyter", "notebook", "--port=8888", "--no-browser", "--ip=0.0.0.0", "--allow-root"]
-# TODO add this above --PasswordIdentityProvider.hashed_password=''
-
-
-# Run the FastAPI application by default
-# Uses `fastapi dev` to enable hot-reloading when the `watch` sync occurs
-# Uses `--host 0.0.0.0` to allow access from outside the container
-# CMD ["fastapi", "dev", "--host", "0.0.0.0", "src/uv_docker_example"]
-# TODO this should be the jupyter command
-# RUN uv run some_script.py
+# TODO add this above --PasswordIdentityProvider.hashed_password='' to get rid of logins?
