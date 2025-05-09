@@ -1,5 +1,5 @@
 import re
-from typing import List  # , Dict, Iterable, Tuple, Union
+from typing import List, Union  # , Dict, Iterable, Tuple, Union
 
 import requests_cache
 from requests import get
@@ -9,17 +9,16 @@ class GutenbergTextProvider:
     def __init__(self) -> None:
         self.text = ""
 
-    def get_text(self, to_char=None):
+    def get_text(self, to_char: Union[int, None] = None) -> str:
         # TODO be a generator over SpaCy "sentencizer"
         if to_char is not None:
             return self.text[:to_char]
-        else:
-            return self.text
 
-    def fetch(self, id: int) -> None:
-        requests_cache.install_cache(f"tm_{id}", backend="filesystem")
-        res = get(f"https://gutenberg.org/ebooks/{id}.txt.utf-8", timeout=30)
+        return self.text
 
+    def fetch(self, book_id: int) -> None:
+        requests_cache.install_cache(f"tm_{book_id}", backend="filesystem")
+        res = get(f"https://gutenberg.org/ebooks/{book_id}.txt.utf-8", timeout=30)
         self.text = self.preprocess(res.text)
 
     def preprocess(self, text: str) -> str:
@@ -52,5 +51,8 @@ class GutenbergTextProvider:
             if line.startswith("*** END OF THE PROJECT GUTENBERG"):
                 endpoints["end"] = k
 
+        # TODO not so great because we're copying the whole book text in memory...
         cleaned_text: List[str] = lines[endpoints["start"] + 1 : endpoints["end"] - 1]
+
+        # Reconstruct the text without line breaks
         return " ".join(cleaned_text)
