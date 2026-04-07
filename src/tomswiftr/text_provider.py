@@ -26,20 +26,21 @@ class GutenbergTextProvider:
 
         # Chop off header and footer
         endpoints = {"start": 0, "end": len(lines)}
+        chapter_one_re = re.compile(r"^\s*(?:CHAPTER I(?:[.:])?|I\.)\s*$")
+        start_markers = {"chapter": None, "gutenberg": None, "produced_by": None}
 
         for k, line in enumerate(lines):
-            if line.startswith("*** START OF THE PROJECT"):
-                endpoints["start"] = k
+            if start_markers["chapter"] is None and chapter_one_re.match(line):
+                start_markers["chapter"] = k
 
-            if line.startswith("Produced by") and k > endpoints["start"]:
-                # Update it since sometimes the (gutenberg text) produced by
-                # line comes after the actual, official start!
-                endpoints["start"] = k
+            if (
+                start_markers["gutenberg"] is None
+                and line.startswith("*** START OF THE PROJECT")
+            ):
+                start_markers["gutenberg"] = k
 
-            # This is a better feature...
-            # if line.startswith("CHAPTER I") and k > endpoints["start"]:
-            if re.match(r"^CHAPTER I\b", line) and k > endpoints["start"]:
-                endpoints["start"] = k
+            if start_markers["produced_by"] is None and line.startswith("Produced by"):
+                start_markers["produced_by"] = k
 
             if line.startswith("THE END"):
                 endpoints["end"] = k
@@ -50,6 +51,13 @@ class GutenbergTextProvider:
 
             if line.startswith("*** END OF THE PROJECT GUTENBERG"):
                 endpoints["end"] = k
+
+        if start_markers["chapter"] is not None:
+            endpoints["start"] = start_markers["chapter"]
+        elif start_markers["gutenberg"] is not None:
+            endpoints["start"] = start_markers["gutenberg"]
+        elif start_markers["produced_by"] is not None:
+            endpoints["start"] = start_markers["produced_by"]
 
         # TODO not so great because we're copying the whole book text in memory...
         cleaned_text: List[str] = lines[endpoints["start"] + 1 : endpoints["end"] - 1]
