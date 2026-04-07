@@ -9,6 +9,7 @@ from requests import get
 class GutenbergTextProvider:
     _cache_installed = False
     _cache_name = "tm_gutenberg"
+    _gutenberg_marker_re = re.compile(r"project gutenberg", re.IGNORECASE)
 
     def __init__(self) -> None:
         if not self.__class__._cache_installed:
@@ -27,6 +28,19 @@ class GutenbergTextProvider:
 
     def fetch(self, book_id: int) -> None:
         res = get(f"https://gutenberg.org/ebooks/{book_id}.txt.utf-8", timeout=30)
+        res.raise_for_status()
+
+        content_type = res.headers.get("Content-Type", "").lower()
+        if "html" in content_type:
+            raise ValueError(
+                f"Unexpected content type for book {book_id}: {content_type}"
+            )
+
+        if self.__class__._gutenberg_marker_re.search(res.text, 0, 5000) is None:
+            raise ValueError(
+                f"Response for book {book_id} does not appear to be a Gutenberg text."
+            )
+
         self.text = self.preprocess(res.text)
 
     def preprocess(self, text: str) -> str:
