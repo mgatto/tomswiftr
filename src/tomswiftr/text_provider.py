@@ -1,5 +1,6 @@
+import io
 import re
-from typing import List, Union  # , Dict, Iterable, Tuple, Union
+from typing import Union  # , Dict, Iterable, Tuple, Union
 
 import requests_cache
 from requests import get
@@ -22,10 +23,10 @@ class GutenbergTextProvider:
         self.text = self.preprocess(res.text)
 
     def preprocess(self, text: str) -> str:
-        lines = text.splitlines()
+        # First pass: find start/end boundaries without materializing all lines.
+        endpoints = {"start": 0, "end": None}
+        n_lines = 0
 
-        # Chop off header and footer
-        endpoints = {"start": 0, "end": len(lines)}
         # Tracks which end rule matched so slicing can be marker-aware.
         end_marker = None
         chapter_one_re = re.compile(
@@ -33,7 +34,9 @@ class GutenbergTextProvider:
         )
         start_markers = {"chapter": None, "gutenberg": None, "produced_by": None}
 
-        for k, line in enumerate(lines):
+        for k, raw_line in enumerate(io.StringIO(text)):
+            n_lines = k + 1
+            line = raw_line.rstrip("\r\n")
             if start_markers["chapter"] is None and chapter_one_re.match(line):
                 start_markers["chapter"] = k
 
@@ -76,13 +79,12 @@ class GutenbergTextProvider:
         )
         # If no end marker matched, keep the full tail (don't drop the last line).
         end_idx = (
-            endpoints["end"]
-            if end_marker in {"the_end", "gutenberg_end"}
-            else len(lines)
+            endpoints["end"] if end_marker in {"the_end", "gutenberg_end"} else n_lines
         )
 
-        # TODO not so great because we're copying the whole book text in memory...
-        cleaned_text: List[str] = lines[start_idx:end_idx]
-
-        # Reconstruct the text without line breaks
-        return " ".join(cleaned_text)
+        # Second pass: stream cleaned lines, avoiding large intermediate copies.
+        return " ".join(
+            raw_line.rstrip("\r\n")
+            for i, raw_line in enumerate(io.StringIO(text))
+            if start_idx <= i < end_idx
+        )
