@@ -1,6 +1,6 @@
 import io
 import re
-from typing import Union  # , Dict, Iterable, Tuple, Union
+from typing import Union
 
 import requests_cache
 from requests import get
@@ -37,6 +37,7 @@ class GutenbergTextProvider:
         for k, raw_line in enumerate(io.StringIO(text)):
             n_lines = k + 1
             line = raw_line.rstrip("\r\n")
+
             if start_markers["chapter"] is None and chapter_one_re.match(line):
                 start_markers["chapter"] = k
 
@@ -77,6 +78,7 @@ class GutenbergTextProvider:
             if start_marker in {"gutenberg", "produced_by"}
             else endpoints["start"]
         )
+
         # If no end marker matched, keep the full tail (don't drop the last line).
         end_idx = (
             endpoints["end"] if end_marker in {"the_end", "gutenberg_end"} else n_lines
