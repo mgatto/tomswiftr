@@ -7,7 +7,15 @@ from requests import get
 
 
 class GutenbergTextProvider:
+    _cache_installed = False
+    _cache_name = "tm_gutenberg"
+
     def __init__(self) -> None:
+        if not self.__class__._cache_installed:
+            requests_cache.install_cache(
+                self.__class__._cache_name, backend="filesystem"
+            )
+            self.__class__._cache_installed = True
         self.text = ""
 
     def get_text(self, to_char: Union[int, None] = None) -> str:
@@ -18,7 +26,6 @@ class GutenbergTextProvider:
         return self.text
 
     def fetch(self, book_id: int) -> None:
-        requests_cache.install_cache(f"tm_{book_id}", backend="filesystem")
         res = get(f"https://gutenberg.org/ebooks/{book_id}.txt.utf-8", timeout=30)
         self.text = self.preprocess(res.text)
 
